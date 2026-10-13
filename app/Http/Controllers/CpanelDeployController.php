@@ -63,7 +63,7 @@ class CpanelDeployController extends Controller
 </head>
 <body>
     <div class="card">
-        <div class="icon">🔒</div>
+        <div class="icon"><img src="/images/logo.jpeg" alt="Logo Bank Samsul" style="width: 72px; height: 72px; object-fit: contain; border-radius: 12px; background: #ffffff; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.3);"></div>
         <h2>cPanel Deployment Utility</h2>
         <p>Akses ke fitur migrasi & artisan dibatasi demi keamanan database sistem Anda.</p>
         <form method="GET" action="' . htmlspecialchars($actionUrl) . '">
@@ -670,7 +670,7 @@ class CpanelDeployController extends Controller
         <!-- HEADER -->
         <header class="header">
             <div class="brand">
-                <div class="brand-icon">⚙</div>
+                <div class="brand-icon" style="background: #ffffff; overflow: hidden; padding: 2px;"><img src="/images/logo.jpeg" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;"></div>
                 <div>
                     <h1 class="brand-title">cPanel Deployment Utility</h1>
                     <span class="brand-sub">Bank Samsul (SMP 2 Al-Muhajirin) - Artisan Web Runner</span>

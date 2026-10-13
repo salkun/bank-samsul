@@ -5,10 +5,7 @@
       <div class="nav-inner">
         <div class="nav-brand">
           <div class="brand-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 19H4.8A2 2 0 0 1 3 16.9L4 11M17 19h2.2a2 2 0 0 0 1.8-2.1L20 11M7 19l2-4M17 19l-2-4M8.5 5h7l2 4H6.5l2-4z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
+            <img src="/images/logo.jpeg" alt="Logo Bank Samsul" class="brand-logo-img" />
           </div>
           <div class="brand-text">
             <span class="brand-name">BankSamsul</span>
@@ -1612,14 +1609,23 @@ onMounted(() => {
 }
 
 .brand-logo {
-  width: 36px;
-  height: 36px;
-  background: var(--forest);
-  color: var(--lime);
+  width: 38px;
+  height: 38px;
+  background: #ffffff;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--line);
+  padding: 2px;
+}
+
+.brand-logo .brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .brand-logo svg {

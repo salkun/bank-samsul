@@ -4,7 +4,7 @@
     <header class="lp-nav" :class="{ scrolled }">
       <div class="wrap nav-inner">
         <a class="brand" href="#top" aria-label="Bank Samsul, beranda">
-          <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#173f32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 4C10 4 5 8 5 15c0 2 1 4 3 5" /><path d="M5 20c2-6 6-9 12-12" /><path d="M12 20c4-1 7-5 7-10" /></svg></span>
+          <span class="brand-mark"><img src="/images/logo.jpeg" alt="Logo Bank Samsul" class="brand-logo-img" /></span>
           bank samsul.
         </a>
         <nav id="menu" class="nav-links" :class="{ open: menuOpen }" aria-label="Navigasi utama">
@@ -230,10 +230,7 @@
           <div class="footer-col brand-col">
             <a class="brand footer-brand" href="#top">
               <span class="brand-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#173f32" stroke-width="2" stroke-linecap="round">
-                  <path d="M19 4C10 4 5 8 5 15c0 2 1 4 3 5" />
-                  <path d="M5 20c2-6 6-9 12-12" />
-                </svg>
+                <img src="/images/logo.jpeg" alt="Logo Bank Samsul" class="brand-logo-img" />
               </span>
               bank samsul.
             </a>
@@ -512,7 +509,8 @@ p { color: var(--muted); }
 .lp-nav.scrolled { border-color: var(--line); box-shadow: 0 4px 24px #173f3208; }
 .nav-inner { height: 64px; display: flex; align-items: center; gap: 32px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 19px Manrope, sans-serif; letter-spacing: -.06em; color: var(--forest) !important; white-space: nowrap; }
-.brand-mark { width: 34px; height: 34px; background: var(--lime); border-radius: 11px; display: grid; place-items: center; transform: rotate(-5deg); }
+.brand-mark { width: 36px; height: 36px; background: #ffffff; border: 1px solid rgba(23,63,50,0.12); border-radius: 10px; display: grid; place-items: center; overflow: hidden; box-shadow: 0 2px 8px rgba(23,63,50,0.08); padding: 2px; }
+.brand-mark .brand-logo-img { width: 100%; height: 100%; object-fit: contain; }
 .brand-mark svg { width: 23px; height: 23px; }
 .nav-links { display: flex; align-items: center; gap: 28px; margin-left: auto; }
 .nav-links a { text-decoration: none; color: #53635a; font-size: 13px; font-weight: 600; position: relative; padding: 7px 0; }

@@ -13,11 +13,7 @@
           <div class="brand-row">
             <router-link to="/" class="brand-link" title="Ke Beranda">
               <span class="brand-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#173f32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M19 4C10 4 5 8 5 15c0 2 1 4 3 5" />
-                  <path d="M5 20c2-6 6-9 12-12" />
-                  <path d="M12 20c4-1 7-5 7-10" />
-                </svg>
+                <img src="/images/logo.jpeg" alt="Logo Bank Samsul" class="brand-logo-img" />
               </span>
               <span class="brand-title">bank samsul.</span>
             </router-link>
@@ -352,14 +348,22 @@ const handleContactAdmin = () => {
   color: var(--text-main);
 }
 .brand-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  background: #d5ee83;
-  display: grid;
-  place-items: center;
-  transform: rotate(-5deg);
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   box-shadow: 0 4px 12px rgba(23, 63, 50, 0.12);
+  border: 1px solid #e2ebe0;
+  padding: 2px;
+}
+.brand-mark .brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .brand-mark svg {
   width: 22px;

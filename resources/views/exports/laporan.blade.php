@@ -19,6 +19,9 @@
 <body>
 
     <div class="header">
+        @if(file_exists(public_path('images/logo.jpeg')))
+            <img src="{{ public_path('images/logo.jpeg') }}" style="height: 55px; margin-bottom: 8px;">
+        @endif
         <h2>Laporan Rekapitulasi BankSamsul</h2>
         <p>{{ $periode }}</p>
     </div>

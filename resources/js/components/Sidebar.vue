@@ -3,10 +3,7 @@
     <!-- Header Brand -->
     <div class="sidebar-brand-box">
       <div class="brand-crest">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 19H4.8A2 2 0 0 1 3 16.9L4 11M17 19h2.2a2 2 0 0 0 1.8-2.1L20 11M7 19l2-4M17 19l-2-4M8.5 5h7l2 4H6.5l2-4z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
+        <img src="/images/logo.jpeg" alt="Logo Bank Samsul" class="brand-logo-img" />
       </div>
       <div class="brand-info">
         <span class="brand-title">BankSamsul</span>
@@ -228,16 +225,23 @@ const handleLogout = async () => {
 }
 
 .brand-crest {
-  width: 34px;
-  height: 34px;
-  background: var(--sb-surface);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #34d399;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.brand-crest .brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .brand-crest svg {
