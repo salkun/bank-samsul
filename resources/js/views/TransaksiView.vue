@@ -1,198 +1,256 @@
 <template>
   <MainLayout>
-    <div class="container mt-4">
-      <h3>Transaksi Bank Sampah</h3>
+    <div class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold text-success mb-0">
+          <i class="bi bi-recycle me-2"></i> Transaksi Setoran Sampah
+        </h3>
+      </div>
+      <p class="text-muted">Pencatatan setoran sampah nasabah untuk menghasilkan Poin Sampah.</p>
 
       <!-- FORM SETORAN -->
-      <div class="card mt-3 p-3 shadow-sm">
-        <h5 class="mb-3 text-success">
-          <i class="bi bi-arrow-up-circle me-1"></i> Form Setoran
+      <div class="card border-0 shadow-sm p-4 mb-4">
+        <h5 class="mb-3 text-success fw-bold">
+          <i class="bi bi-arrow-down-left-circle me-1"></i> Form Setoran Sampah
         </h5>
         <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label">Nasabah</label>
-            <select v-model="form.user_id" class="form-select" @change="loadRiwayat">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Pilih Nasabah <span class="text-danger">*</span></label>
+            <select v-model="form.user_id" class="form-select" @change="onNasabahChange">
               <option value="">-- Pilih Nasabah --</option>
               <option v-for="n in nasabah" :key="n.id" :value="n.id">
-                {{ n.nama }} (Saldo: Rp {{ n.saldo.toLocaleString() }})
+                {{ n.nama }} (Poin: {{ (n.poin_sampah ?? 0).toLocaleString() }} Sampah | {{ (n.poin_lingkungan ?? 0).toLocaleString() }} Lingkungan)
               </option>
             </select>
           </div>
 
           <div class="col-md-3">
-            <label class="form-label">Jenis Sampah</label>
+            <label class="form-label fw-semibold">Jenis Sampah <span class="text-danger">*</span></label>
             <select v-model="form.kategori_id" class="form-select">
               <option value="">-- Pilih Jenis --</option>
               <option v-for="k in kategori" :key="k.id" :value="k.id">
-                {{ k.nama }} (Rp {{ k.harga_per_kg.toLocaleString() }}/kg)
+                {{ k.nama }} ({{ Number(k.poin_per_kg).toLocaleString() }} poin/{{ k.satuan }})
               </option>
             </select>
           </div>
 
           <div class="col-md-2">
-            <label class="form-label">Berat (kg)</label>
-            <input v-model="form.berat" type="number" class="form-control" min="0.1" step="0.1" />
+            <label class="form-label fw-semibold">Berat (kg) <span class="text-danger">*</span></label>
+            <input
+              v-model.number="form.berat"
+              type="number"
+              class="form-control"
+              min="0.1"
+              step="0.1"
+              placeholder="0.0"
+            />
           </div>
 
-          <div class="col-md-2">
-            <label class="form-label">Tanggal Setor</label>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Tanggal Setor</label>
             <input v-model="form.tanggal" type="date" class="form-control" />
           </div>
 
-          <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-success w-100" @click="setor">
-              <i class="bi bi-check-circle me-1"></i> Setor
+          <!-- Preview Perhitungan Poin -->
+          <div class="col-12" v-if="selectedKategori && form.berat > 0">
+            <div class="alert alert-success d-flex align-items-center justify-content-between mb-0 py-2 px-3">
+              <div>
+                <i class="bi bi-calculator me-2"></i>
+                <span>Perhitungan: {{ form.berat }} kg × {{ Number(selectedKategori.poin_per_kg).toLocaleString() }} poin/kg =</span>
+              </div>
+              <div class="fs-5 fw-bold text-success">
+                +{{ estimasiPoin.toLocaleString('id-ID') }} Poin Sampah
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 text-end">
+            <button class="btn btn-success px-4" @click="setor" :disabled="submitting">
+              <span v-if="submitting" class="spinner-border spinner-border-sm me-1"></span>
+              <i v-else class="bi bi-check-circle me-1"></i> Catat Setoran
             </button>
           </div>
         </div>
       </div>
 
-      <!-- FORM PENARIKAN -->
-      <div class="card mt-4 p-3 shadow-sm">
-        <h5 class="mb-3 text-danger">
-          <i class="bi bi-arrow-down-circle me-1"></i> Form Penarikan
-        </h5>
-        <div class="row g-3 align-items-end">
-          <div class="col-md-3">
-            <label class="form-label">Nasabah</label>
-            <select v-model="penarikan.user_id" class="form-select" @change="loadRiwayat">
-              <option value="">-- Pilih Nasabah --</option>
-              <option v-for="n in nasabah" :key="n.id" :value="n.id">
-                {{ n.nama }} (Saldo: Rp {{ n.saldo.toLocaleString() }})
-              </option>
-            </select>
+      <!-- DETAIL NASABAH TERPILIH & RIWAYAT -->
+      <div v-if="selectedNasabahData" class="mb-4">
+        <!-- Info Ringkas Nasabah -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white">
+              <span class="text-muted small">Nasabah Terpilih</span>
+              <h5 class="fw-bold text-dark mt-1 mb-0">{{ selectedNasabahData.nama }}</h5>
+              <small class="text-muted">@{{ selectedNasabahData.username }}</small>
+            </div>
           </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Nominal (Rp)</label>
-            <input v-model="penarikan.jumlah" type="number" class="form-control" min="1000" step="500" />
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white">
+              <span class="text-muted small">Poin Sampah</span>
+              <h4 class="fw-bold text-success mt-1 mb-0">
+                {{ Number(selectedNasabahData.poin_sampah ?? 0).toLocaleString('id-ID') }}
+              </h4>
+            </div>
           </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Tanggal Penarikan</label>
-            <input v-model="penarikan.tanggal" type="date" class="form-control" />
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 bg-white">
+              <span class="text-muted small">Poin Lingkungan</span>
+              <h4 class="fw-bold text-warning-emphasis mt-1 mb-0">
+                {{ Number(selectedNasabahData.poin_lingkungan ?? 0).toLocaleString('id-ID') }}
+              </h4>
+            </div>
           </div>
+        </div>
 
-          <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-danger w-100" @click="tarik">
-              <i class="bi bi-cash me-1"></i> Tarik
-            </button>
+        <!-- Tabel Riwayat Setoran Nasabah -->
+        <div class="card border-0 shadow-sm overflow-hidden">
+          <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-clock-history me-2"></i> Riwayat Setoran Nasabah: {{ selectedNasabahData.nama }}</span>
+            <span class="badge bg-white text-success">{{ riwayatSetoran.length }} Setoran</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 50px;">No</th>
+                  <th>Tanggal</th>
+                  <th class="text-start">Jenis Sampah</th>
+                  <th>Berat</th>
+                  <th>Poin Didapat</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="!riwayatSetoran.length">
+                  <td colspan="5" class="text-muted py-4">Belum ada catatan setoran untuk nasabah ini.</td>
+                </tr>
+                <tr v-for="(s, i) in riwayatSetoran" :key="s.id">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ formatDate(s.tanggal) }}</td>
+                  <td class="text-start fw-semibold">{{ s.kategori?.nama || '-' }}</td>
+                  <td>{{ s.berat }} kg</td>
+                  <td>
+                    <span class="badge bg-success-subtle text-success px-3 py-2 fw-bold">
+                      +{{ Number(s.poin).toLocaleString('id-ID') }} Poin
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-
-      <hr class="my-4" />
-
-      <!-- RIWAYAT TRANSAKSI -->
-      <h5><i class="bi bi-clock-history me-1"></i> Riwayat Transaksi Nasabah</h5>
-      <table class="table table-striped mt-2 align-middle text-center">
-        <thead class="table-success">
-          <tr>
-            <th>No</th>
-            <th>Jenis</th>
-            <th>Jumlah (Rp)</th>
-            <th>Tanggal</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="!transaksi.length">
-            <td colspan="4" class="text-center text-muted py-3">Belum ada transaksi</td>
-          </tr>
-          <tr v-for="(t, i) in transaksi" :key="i">
-            <td>{{ i + 1 }}</td>
-            <td>
-              <span :class="t.jenis === 'Setoran' ? 'text-success' : 'text-danger'">
-                {{ t.jenis === 'Setoran' ? 'Setoran' : 'Penarikan' }}
-              </span>
-            </td>
-            <td>Rp {{ Number(t.jumlah).toLocaleString() }}</td>
-            <td>{{ formatDate(t.tanggal) }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="text-center py-5 text-muted border rounded-3 bg-white">
+        <i class="bi bi-person-check fs-1 text-secondary mb-2 d-block"></i>
+        Pilih salah satu nasabah pada formulir di atas untuk melihat riwayat setoran & saldo poin mereka.
+      </div>
     </div>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 import { useAuthStore } from '../stores/useAuthStore'
 import MainLayout from '../layouts/MainLayout.vue'
-import Swal from 'sweetalert2'
 
 const auth = useAuthStore()
 const nasabah = ref([])
 const kategori = ref([])
-const transaksi = ref([])
+const submitting = ref(false)
+
+const selectedNasabahData = ref(null)
+const riwayatSetoran = ref([])
 
 const form = ref({
   user_id: '',
   kategori_id: '',
   berat: '',
-  tanggal: new Date().toISOString().substr(0, 10)
+  tanggal: new Date().toISOString().substring(0, 10)
 })
 
-const penarikan = ref({
-  user_id: '',
-  jumlah: '',
-  tanggal: new Date().toISOString().substr(0, 10)
+const selectedKategori = computed(() => {
+  return kategori.value.find(k => k.id === form.value.kategori_id) || null
+})
+
+const estimasiPoin = computed(() => {
+  if (!selectedKategori.value || !form.value.berat) return 0
+  return Math.floor(form.value.berat * selectedKategori.value.poin_per_kg)
 })
 
 // === LOAD NASABAH & KATEGORI ===
 const loadData = async () => {
   const headers = { Authorization: `Bearer ${auth.token}` }
-  const [n, k] = await Promise.all([
-    axios.get('/api/nasabah', { headers }),
-    axios.get('/api/kategori', { headers })
-  ])
-  nasabah.value = n.data
-  kategori.value = k.data
-}
-
-// === LOAD RIWAYAT ===
-const loadRiwayat = async () => {
-  const userId = form.value.user_id || penarikan.value.user_id
-  if (!userId) return
   try {
-    const res = await axios.get(`/api/transaksi/${userId}`, {
-      headers: { Authorization: `Bearer ${auth.token}` }
-    })
-    transaksi.value = res.data
-  } catch {
-    transaksi.value = []
+    const [n, k] = await Promise.all([
+      axios.get('/api/nasabah', { headers }),
+      axios.get('/api/kategori', { headers })
+    ])
+    nasabah.value = n.data
+    kategori.value = k.data
+  } catch (err) {
+    Swal.fire('Gagal!', 'Gagal memuat data awal.', 'error')
   }
 }
 
-// === SETORAN ===
+// === PILIH NASABAH & LOAD RIWAYAT ===
+const onNasabahChange = async () => {
+  if (!form.value.user_id) {
+    selectedNasabahData.value = null
+    riwayatSetoran.value = []
+    return
+  }
+
+  try {
+    const res = await axios.get(`/api/transaksi/${form.value.user_id}`, {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    })
+    selectedNasabahData.value = res.data.nasabah
+    riwayatSetoran.value = res.data.setoran || []
+  } catch {
+    selectedNasabahData.value = null
+    riwayatSetoran.value = []
+  }
+}
+
+// === SUBMIT SETORAN ===
 const setor = async () => {
-  if (!form.value.user_id || !form.value.kategori_id || !form.value.berat) {
+  if (!form.value.user_id || !form.value.kategori_id || !form.value.berat || form.value.berat <= 0) {
     Swal.fire({
       icon: 'warning',
-      title: 'Lengkapi Data!',
-      text: 'Semua field setoran harus diisi.',
+      title: 'Lengkapi Formulir!',
+      text: 'Pilih nasabah, jenis sampah, dan masukkan berat sampah yang valid.',
       confirmButtonColor: '#16a34a',
     })
     return
   }
 
+  submitting.value = true
   try {
-    await axios.post('/api/transaksi/setoran', form.value, {
+    const res = await axios.post('/api/transaksi/setoran', form.value, {
       headers: { Authorization: `Bearer ${auth.token}` }
     })
+
+    const poinDapat = res.data.poin_dapat ?? estimasiPoin.value
 
     await Swal.fire({
       icon: 'success',
       title: 'Setoran Berhasil!',
-      text: 'Data setoran berhasil dicatat.',
-      timer: 1800,
-      showConfirmButton: false
+      text: `Setoran berhasil dicatat (+${poinDapat} Poin Sampah untuk nasabah).`,
+      timer: 2000,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
     })
 
-    await loadData()
-    await loadRiwayat()
+    const currentUserId = form.value.user_id
+    form.value.kategori_id = ''
+    form.value.berat = ''
+    form.value.tanggal = new Date().toISOString().substring(0, 10)
 
-    form.value = { user_id: '', kategori_id: '', berat: '', tanggal: new Date().toISOString().substr(0, 10) }
+    await loadData()
+    form.value.user_id = currentUserId
+    await onNasabahChange()
 
   } catch (err) {
     Swal.fire({
@@ -201,85 +259,27 @@ const setor = async () => {
       text: err.response?.data?.message || 'Terjadi kesalahan saat mencatat setoran.',
       confirmButtonColor: '#dc2626'
     })
+  } finally {
+    submitting.value = false
   }
 }
 
-// === PENARIKAN ===
-const tarik = async () => {
-  if (!penarikan.value.user_id || !penarikan.value.jumlah) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Lengkapi Data!',
-      text: 'Nasabah dan jumlah penarikan wajib diisi.',
-      confirmButtonColor: '#16a34a'
-    })
-    return
-  }
-
-  try {
-    const result = await Swal.fire({
-      title: 'Konfirmasi Penarikan',
-      text: 'Yakin ingin mencatat penarikan ini?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Ya, Lanjutkan',
-      cancelButtonText: 'Batal',
-      confirmButtonColor: '#16a34a',
-      cancelButtonColor: '#6b7280'
-    })
-
-    if (!result.isConfirmed) return
-
-    await axios.post('/api/transaksi/penarikan', penarikan.value, {
-      headers: { Authorization: `Bearer ${auth.token}` }
-    })
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Berhasil!',
-      text: 'Penarikan berhasil diajukan dan menunggu validasi admin.',
-      timer: 2000,
-      showConfirmButton: false
-    })
-
-    await loadData()
-    await loadRiwayat()
-    penarikan.value = { user_id: '', jumlah: '', tanggal: new Date().toISOString().substr(0, 10) }
-
-  } catch (err) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal!',
-      text: err.response?.data?.message || 'Terjadi kesalahan saat mencatat penarikan.',
-      confirmButtonColor: '#dc2626'
-    })
-  }
-}
-
-// Format tanggal ke format lokal
-const formatDate = (date) => {
-  const d = new Date(date)
-  return d.toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleDateString('id-ID', {
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    month: 'short',
+    year: 'numeric'
   })
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
-h3, h5 {
-  font-weight: 600;
-}
-.table th {
-  background-color: #198754 !important;
-  color: white;
-}
-.table td {
-  vertical-align: middle;
+.form-label {
+  font-size: 0.9rem;
 }
 </style>

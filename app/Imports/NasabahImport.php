@@ -6,10 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\WithSkipDuplicates;
 
 class NasabahImport implements ToModel, WithHeadingRow, SkipsOnError
 {
@@ -34,13 +32,17 @@ class NasabahImport implements ToModel, WithHeadingRow, SkipsOnError
 
         $this->imported++;
 
+        $poinSampah = is_numeric($row['poin_sampah'] ?? null) ? (int) $row['poin_sampah'] : 0;
+        $poinLingkungan = is_numeric($row['poin_lingkungan'] ?? $row['poin'] ?? null) ? (int) ($row['poin_lingkungan'] ?? $row['poin']) : 0;
+
         return new User([
-            'nama'     => $row['nama'],
-            'username' => $row['username'],
-            'password' => Hash::make($row['password'] ?? 'password123'),
-            'saldo'    => is_numeric($row['saldo'] ?? null) ? (int) $row['saldo'] : 0,
-            'poin'     => is_numeric($row['poin'] ?? null) ? (int) $row['poin'] : 0,
-            'role'     => 'nasabah',
+            'nama'            => $row['nama'],
+            'username'        => $row['username'],
+            'password'        => Hash::make($row['password'] ?? 'password123'),
+            'saldo'           => is_numeric($row['saldo'] ?? null) ? (float) $row['saldo'] : 0,
+            'poin_sampah'     => $poinSampah,
+            'poin_lingkungan' => $poinLingkungan,
+            'role'            => 'nasabah',
         ]);
     }
 

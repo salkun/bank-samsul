@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,11 +11,22 @@ class SetoranSampah extends Model
 
     protected $table = 'setoran_sampah';
     protected $fillable = [
-        'user_id', 'kategori_id', 'petugas_id', 'berat', 'total', 'tanggal'
+        'user_id', 'kategori_id', 'petugas_id', 'berat', 'poin', 'tanggal'
+    ];
+
+    protected $casts = [
+        'berat' => 'float',
+        'poin' => 'integer',
+        'tanggal' => 'date',
     ];
 
     // === RELASI ===
     public function nasabah()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }

@@ -4,19 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\SetoranSampah;
-use App\Models\Penarikan;
 use App\Models\User;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\LaporanExport;
 
 class LaporanController extends Controller
 {
-   public function laporanBulan(Request $request)
+    public function laporanBulan(Request $request)
     {
         $startDate = $request->input('start_date', date('Y-m-01'));
-        $endDate = $request->input('end_date', date('Y-m-t'));
+        $endDate   = $request->input('end_date', date('Y-m-d'));
 
         // Validasi
         if (strtotime($startDate) === false || strtotime($endDate) === false || $startDate > $endDate) {
@@ -27,46 +26,48 @@ class LaporanController extends Controller
 
         return response()->json(array_merge([
             'periode' => "Periode: " . date('d M Y', strtotime($startDate)) . " - " . date('d M Y', strtotime($endDate)),
-            'range' => [$startDate, $endDate]
+            'range'   => [$startDate, $endDate]
         ], $data));
     }
 
     private function getLaporanData($startDate, $endDate)
     {
-        // === 1. Total berat & nilai per jenis sampah ===
+        $startDateTime = Carbon::parse($startDate)->startOfDay()->toDateTimeString();
+        $endDateTime   = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
+
+        // === 1. Total berat & poin per jenis sampah ===
         $beratPerJenis = DB::table('setoran_sampah')
             ->join('kategori_sampah', 'setoran_sampah.kategori_id', '=', 'kategori_sampah.id')
             ->select(
                 'kategori_sampah.nama as jenis',
                 DB::raw('SUM(setoran_sampah.berat) as total_kg'),
-                DB::raw('SUM(setoran_sampah.total) as total_rp')
+                DB::raw('SUM(setoran_sampah.poin) as total_poin')
             )
             ->whereBetween('setoran_sampah.tanggal', [$startDate, $endDate])
             ->groupBy('kategori_sampah.nama')
             ->orderBy('total_kg', 'desc')
             ->get();
 
-        // === 2. Total saldo masuk & keluar ===
-        $saldoMasuk = DB::table('riwayat_transaksi')
-            ->where('jenis', 'Setoran')
+        // === 2. Total poin sampah masuk & poin dipakai ===
+        $poinSampahMasuk = (int) DB::table('setoran_sampah')
             ->whereBetween('tanggal', [$startDate, $endDate])
-            ->sum('jumlah');
+            ->sum('poin');
 
-        $saldoKeluar = DB::table('riwayat_transaksi')
-            ->where('jenis', 'Penarikan')
-            ->whereBetween('tanggal', [$startDate, $endDate])
-            ->sum('jumlah');
+        $poinDipakai = (int) DB::table('penukaran')
+            ->whereIn('status', ['menunggu', 'disetujui', 'diambil'])
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->sum('poin_dipakai');
 
-        // === 3. Jumlah transaksi per nasabah ===
-        $transaksiNasabah = DB::table('riwayat_transaksi')
-            ->join('users', 'riwayat_transaksi.user_id', '=', 'users.id')
+        // === 3. Transaksi per nasabah ===
+        $transaksiNasabah = DB::table('setoran_sampah')
+            ->join('users', 'setoran_sampah.user_id', '=', 'users.id')
             ->select(
                 'users.nama as nasabah',
-                DB::raw('COUNT(riwayat_transaksi.id) as total_transaksi'),
-                DB::raw('SUM(CASE WHEN riwayat_transaksi.jenis = "Setoran" THEN riwayat_transaksi.jumlah ELSE 0 END) as total_masuk'),
-                DB::raw('SUM(CASE WHEN riwayat_transaksi.jenis = "Penarikan" THEN riwayat_transaksi.jumlah ELSE 0 END) as total_keluar')
+                DB::raw('COUNT(setoran_sampah.id) as total_transaksi'),
+                DB::raw('SUM(setoran_sampah.berat) as total_berat'),
+                DB::raw('SUM(setoran_sampah.poin) as total_poin')
             )
-            ->whereBetween('riwayat_transaksi.tanggal', [$startDate, $endDate])
+            ->whereBetween('setoran_sampah.tanggal', [$startDate, $endDate])
             ->groupBy('users.nama')
             ->orderByDesc('total_transaksi')
             ->get();
@@ -98,58 +99,82 @@ class LaporanController extends Controller
             ->select(
                 'kategori_sampah.kategori',
                 DB::raw('SUM(setoran_sampah.berat) as total_kg'),
-                DB::raw('SUM(setoran_sampah.total) as total_rp')
+                DB::raw('SUM(setoran_sampah.poin) as total_poin')
             )
             ->whereBetween('setoran_sampah.tanggal', [$startDate, $endDate])
             ->groupBy('kategori_sampah.kategori')
             ->get();
 
-        // === 6. Rekap Survey Lingkungan ===
+        // === 6. Rekapitulasi Penukaran Barang ===
+        $rekapPenukaran = DB::table('penukaran')
+            ->select(
+                'status',
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(poin_dipakai) as total_poin')
+            )
+            ->whereBetween('created_at', [$startDateTime, $endDateTime])
+            ->groupBy('status')
+            ->get();
+
+        $barangPopuler = DB::table('penukaran')
+            ->join('barang_redeem', 'penukaran.barang_id', '=', 'barang_redeem.id')
+            ->select(
+                'barang_redeem.nama',
+                DB::raw('SUM(penukaran.jumlah) as total_unit'),
+                DB::raw('SUM(penukaran.poin_dipakai) as total_poin')
+            )
+            ->whereBetween('penukaran.created_at', [$startDateTime, $endDateTime])
+            ->groupBy('barang_redeem.nama')
+            ->orderByDesc('total_unit')
+            ->get();
+
+        // === 7. Rekap Survey Lingkungan ===
         $surveyLingkungan = DB::table('survey_lingkungan')
             ->select(
                 'kategori',
                 'status',
                 DB::raw('COUNT(*) as total')
             )
-            ->whereRaw('DATE(tanggal) >= ?', [$startDate])
-            ->whereRaw('DATE(tanggal) <= ?', [$endDate])
+            ->whereBetween('tanggal', [$startDateTime, $endDateTime])
             ->groupBy('kategori', 'status')
             ->get();
 
         return [
-            'berat_per_jenis' => $beratPerJenis,
-            'saldo_masuk' => $saldoMasuk,
-            'saldo_keluar' => $saldoKeluar,
-            'transaksi_per_nasabah' => $transaksiNasabah,
-            'top_organik' => $topOrganik,
-            'top_anorganik' => $topAnorganik,
+            'berat_per_jenis'      => $beratPerJenis,
+            'poin_sampah_masuk'    => $poinSampahMasuk,
+            'poin_dipakai'         => $poinDipakai,
+            'transaksi_per_nasabah'=> $transaksiNasabah,
+            'top_organik'          => $topOrganik,
+            'top_anorganik'        => $topAnorganik,
             'setoran_per_kategori' => $setoranPerKategori,
-            'survey_lingkungan' => $surveyLingkungan
+            'rekap_penukaran'      => $rekapPenukaran,
+            'barang_populer'       => $barangPopuler,
+            'survey_lingkungan'    => $surveyLingkungan,
         ];
     }
 
     public function laporanDashboard()
     {
-        // Total nasabah
         $totalNasabah = User::where('role', 'nasabah')->count();
 
-        // Total setoran dan penarikan bulan ini
-        $bulanIni = date('m');
-        $tahunIni = date('Y');
+        $startOfMonth = Carbon::now()->startOfMonth()->toDateString();
+        $endOfMonth   = Carbon::now()->endOfMonth()->toDateString();
+        $startOfMonthDT = Carbon::now()->startOfMonth()->toDateTimeString();
+        $endOfMonthDT   = Carbon::now()->endOfMonth()->toDateTimeString();
 
-        $totalSetoran = DB::table('riwayat_transaksi')
-            ->where('jenis', 'Setoran')
-            ->whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->sum('jumlah');
+        $totalSetoranPoin = (int) DB::table('setoran_sampah')
+            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
+            ->sum('poin');
 
-        $totalPenarikan = DB::table('riwayat_transaksi')
-            ->where('jenis', 'Penarikan')
-            ->whereMonth('tanggal', $bulanIni)
-            ->whereYear('tanggal', $tahunIni)
-            ->sum('jumlah');
+        $totalPoinDipakai = (int) DB::table('penukaran')
+            ->whereIn('status', ['menunggu', 'disetujui', 'diambil'])
+            ->whereBetween('created_at', [$startOfMonthDT, $endOfMonthDT])
+            ->sum('poin_dipakai');
 
-        // Jenis sampah paling banyak disetor
+        $penukaranMenunggu = DB::table('penukaran')
+            ->where('status', 'menunggu')
+            ->count();
+
         $jenisPopuler = DB::table('setoran_sampah')
             ->join('kategori_sampah', 'setoran_sampah.kategori_id', '=', 'kategori_sampah.id')
             ->select('kategori_sampah.nama', DB::raw('SUM(setoran_sampah.berat) as total'))
@@ -158,54 +183,61 @@ class LaporanController extends Controller
             ->limit(1)
             ->value('kategori_sampah.nama');
 
-        // Data grafik setoran per bulan
+        $tahunIni = Carbon::now()->year;
         $bulan = [];
         $totalPerBulan = [];
         for ($i = 1; $i <= 12; $i++) {
-            $bulan[] = date('M', mktime(0, 0, 0, $i, 1));
-            $totalPerBulan[] = DB::table('riwayat_transaksi')
-                ->where('jenis', 'Setoran')
-                ->whereMonth('tanggal', $i)
-                ->whereYear('tanggal', $tahunIni)
-                ->sum('jumlah');
+            $bulan[] = Carbon::create($tahunIni, $i, 1)->locale('id')->isoFormat('MMM');
+            $startM = Carbon::create($tahunIni, $i, 1)->startOfMonth()->toDateString();
+            $endM   = Carbon::create($tahunIni, $i, 1)->endOfMonth()->toDateString();
+            $totalPerBulan[] = (int) DB::table('setoran_sampah')
+                ->whereBetween('tanggal', [$startM, $endM])
+                ->sum('poin');
         }
 
-        // Data kategori pie chart
         $kategoriLabels = [];
         $kategoriValues = [];
         $kategori = DB::table('kategori_sampah')->get();
         foreach ($kategori as $k) {
             $kategoriLabels[] = $k->nama;
-            $kategoriValues[] = DB::table('setoran_sampah')
+            $kategoriValues[] = (int) DB::table('setoran_sampah')
                 ->where('kategori_id', $k->id)
-                ->sum('total');
+                ->sum('poin');
         }
 
-        // Transaksi terbaru
-        $transaksiTerbaru = DB::table('riwayat_transaksi')
-            ->join('users', 'riwayat_transaksi.user_id', '=', 'users.id')
-            ->select('users.nama', 'riwayat_transaksi.jenis', 'riwayat_transaksi.jumlah', 'riwayat_transaksi.tanggal')
-            ->orderByDesc('riwayat_transaksi.tanggal')
+        $setoranTerbaru = DB::table('setoran_sampah')
+            ->join('users', 'setoran_sampah.user_id', '=', 'users.id')
+            ->join('kategori_sampah', 'setoran_sampah.kategori_id', '=', 'kategori_sampah.id')
+            ->select(
+                'users.nama',
+                'kategori_sampah.nama as jenis_sampah',
+                'setoran_sampah.berat',
+                'setoran_sampah.poin',
+                'setoran_sampah.tanggal'
+            )
+            ->orderByDesc('setoran_sampah.tanggal')
+            ->orderByDesc('setoran_sampah.id')
             ->limit(5)
             ->get();
 
         return response()->json([
-            'total_nasabah' => $totalNasabah,
-            'total_setoran' => $totalSetoran,
-            'total_penarikan' => $totalPenarikan,
-            'jenis_populer' => $jenisPopuler ?? '-',
-            'bulan' => $bulan,
-            'total_per_bulan' => $totalPerBulan,
-            'kategori_labels' => $kategoriLabels,
-            'kategori_values' => $kategoriValues,
-            'transaksi_terbaru' => $transaksiTerbaru,
+            'total_nasabah'          => $totalNasabah,
+            'total_poin_masuk'       => $totalSetoranPoin,
+            'total_poin_dipakai'     => $totalPoinDipakai,
+            'penukaran_menunggu'     => $penukaranMenunggu,
+            'jenis_populer'          => $jenisPopuler ?? '-',
+            'bulan'                  => $bulan,
+            'total_per_bulan'        => $totalPerBulan,
+            'kategori_labels'        => $kategoriLabels,
+            'kategori_values'        => $kategoriValues,
+            'setoran_terbaru'        => $setoranTerbaru,
         ]);
     }
 
     public function exportExcel(Request $request)
     {
         $startDate = $request->input('start_date', date('Y-m-01'));
-        $endDate = $request->input('end_date', date('Y-m-t'));
+        $endDate   = $request->input('end_date', date('Y-m-d'));
 
         $data = $this->getLaporanData($startDate, $endDate);
         $data['periode'] = date('d M Y', strtotime($startDate)) . " - " . date('d M Y', strtotime($endDate));
@@ -216,7 +248,7 @@ class LaporanController extends Controller
     public function exportPDF(Request $request)
     {
         $startDate = $request->input('start_date', date('Y-m-01'));
-        $endDate = $request->input('end_date', date('Y-m-t'));
+        $endDate   = $request->input('end_date', date('Y-m-d'));
 
         $data = $this->getLaporanData($startDate, $endDate);
         $data['periode'] = date('d M Y', strtotime($startDate)) . " - " . date('d M Y', strtotime($endDate));

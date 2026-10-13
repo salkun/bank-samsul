@@ -25,12 +25,11 @@
     </div>
 
     <div v-if="laporan" class="mt-4">
-      <div class="row">
-        <div class="col-md-4" v-for="(card, i) in cards" :key="i">
-          <div class="card p-3 text-center shadow-sm mb-3">
-            <h6>{{ card.title }}</h6>
-            <h4 v-if="card.type === 'money'">Rp {{ card.value.toLocaleString() }}</h4>
-            <h4 v-else>{{ card.value }}</h4>
+      <div class="row g-3">
+        <div class="col-6 col-md-3" v-for="(card, i) in cards" :key="i">
+          <div class="card p-3 text-center shadow-sm h-100 border-0">
+            <h6 class="text-muted small mb-1">{{ card.title }}</h6>
+            <h4 class="fw-bold mb-0" :class="card.color">{{ card.value }}</h4>
           </div>
         </div>
       </div>
@@ -170,9 +169,10 @@ const loadLaporan = async () => {
     laporan.value = res.data
 
     cards.value = [
-      { title: 'Total Saldo Masuk', value: laporan.value.saldo_masuk, type: 'money' },
-      { title: 'Total Saldo Keluar', value: laporan.value.saldo_keluar, type: 'money' },
-      { title: 'Jumlah Nasabah Aktif', value: laporan.value.transaksi_per_nasabah.length }
+      { title: 'Poin Sampah Masuk', value: `${Number(laporan.value.poin_sampah_masuk ?? laporan.value.saldo_masuk ?? 0).toLocaleString()} Poin`, color: 'text-success' },
+      { title: 'Poin Ditukar Barang', value: `${Number(laporan.value.poin_dipakai ?? laporan.value.saldo_keluar ?? 0).toLocaleString()} Poin`, color: 'text-danger' },
+      { title: 'Total Penukaran Barang', value: `${Number(laporan.value.total_penukaran ?? 0)} Penukaran`, color: 'text-primary' },
+      { title: 'Jumlah Nasabah Aktif', value: `${laporan.value.transaksi_per_nasabah?.length ?? 0} Orang`, color: 'text-info' }
     ]
 
     // Tunggu DOM selesai render sebelum menggambar chart

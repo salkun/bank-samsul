@@ -50,51 +50,80 @@
                 </select>
               </div>
 
-              <!-- Status -->
+              <!-- Rating & Status Penilaian -->
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Status Penilaian</label>
-                <div class="d-flex gap-3 mt-2" v-if="currentTab === 'pemilahan_sampah'">
-                  <div class="form-check custom-radio">
-                    <input class="form-check-input" type="radio" name="status" id="sesuai" value="sesuai" v-model="form.status" required>
-                    <label class="form-check-label badge-success-glow" for="sesuai">
-                      <i class="bi bi-check-circle-fill"></i> Sesuai
-                    </label>
+                <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                  <span>Skala Penilaian & Poin Lingkungan</span>
+                  <span v-if="form.rating" class="badge px-3 py-1 fs-6"
+                        :class="form.rating <= (currentTab === 'kebersihan_kelas' ? 3 : 2) ? 'bg-danger text-white' : (form.rating <= (currentTab === 'kebersihan_kelas' ? 6 : 3) ? 'bg-warning text-dark' : 'bg-success text-white')">
+                    {{ form.status }} (+{{ form.rating }} Poin)
+                  </span>
+                </label>
+
+                <!-- Kategori Kebersihan Kelas (1 - 10) -->
+                <div v-if="currentTab === 'kebersihan_kelas'">
+                  <div class="d-flex flex-wrap gap-1 mb-2">
+                    <button
+                      type="button"
+                      v-for="val in 10"
+                      :key="val"
+                      class="btn btn-sm flex-fill fw-bold"
+                      :class="form.rating === val
+                        ? (val <= 3 ? 'btn-danger shadow-sm' : (val <= 6 ? 'btn-warning shadow-sm' : 'btn-success shadow-sm'))
+                        : (val <= 3 ? 'btn-outline-danger' : (val <= 6 ? 'btn-outline-warning text-dark' : 'btn-outline-success'))"
+                      @click="selectKebersihan(val)"
+                    >
+                      {{ val }}
+                    </button>
                   </div>
-                  <div class="form-check custom-radio">
-                    <input class="form-check-input" type="radio" name="status" id="tidak_sesuai" value="tidak_sesuai" v-model="form.status" required>
-                    <label class="form-check-label badge-danger-glow" for="tidak_sesuai">
-                      <i class="bi bi-x-circle-fill"></i> Tidak Sesuai
-                    </label>
+                  <div class="small text-muted d-flex justify-content-between">
+                    <span class="text-danger fw-semibold">1-3: Sangat Kotor</span>
+                    <span class="text-warning-emphasis fw-semibold">4-6: Cukup</span>
+                    <span class="text-success fw-semibold">7-10: Sangat Bersih</span>
                   </div>
                 </div>
 
-                <div class="d-flex gap-3 mt-2" v-if="currentTab === 'kebersihan_kelas'">
-                  <div class="form-check custom-radio">
-                    <input class="form-check-input" type="radio" name="status" id="bersih" value="bersih" v-model="form.status" required>
-                    <label class="form-check-label badge-success-glow" for="bersih">
-                      <i class="bi bi-check-circle-fill"></i> Bersih
-                    </label>
+                <!-- Kategori Pemilahan Sampah (1 - 5) -->
+                <div v-if="currentTab === 'pemilahan_sampah'">
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <button
+                      type="button"
+                      v-for="(label, val) in pemilahanLabels"
+                      :key="val"
+                      class="btn btn-sm flex-fill fw-semibold py-2"
+                      :class="form.rating === Number(val)
+                        ? (Number(val) <= 2 ? 'btn-danger shadow-sm' : (Number(val) === 3 ? 'btn-warning text-dark shadow-sm' : 'btn-success shadow-sm'))
+                        : 'btn-outline-secondary'"
+                      @click="selectPemilahan(Number(val))"
+                    >
+                      <div class="fw-bold fs-6">{{ val }}</div>
+                      <div class="small">{{ label }} (+{{ val }}p)</div>
+                    </button>
                   </div>
-                  <div class="form-check custom-radio">
-                    <input class="form-check-input" type="radio" name="status" id="tidak_bersih" value="tidak_bersih" v-model="form.status" required>
-                    <label class="form-check-label badge-danger-glow" for="tidak_bersih">
-                      <i class="bi bi-x-circle-fill"></i> Tidak Bersih
-                    </label>
+                  <div class="small text-muted">
+                    Pengelolaan sampah: +1 s/d +5 Poin Lingkungan.
                   </div>
                 </div>
 
-                <div class="d-flex gap-3 mt-2" v-if="currentTab === 'perawatan_tanaman'">
-                  <div class="form-check custom-radio">
-                    <input class="form-check-input" type="radio" name="status" id="disiram" value="disiram" v-model="form.status" required>
-                    <label class="form-check-label badge-success-glow" for="disiram">
-                      <i class="bi bi-check-circle-fill"></i> Disiram
-                    </label>
+                <!-- Kategori Perawatan Tanaman (1 - 5) -->
+                <div v-if="currentTab === 'perawatan_tanaman'">
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    <button
+                      type="button"
+                      v-for="(label, val) in tanamanLabels"
+                      :key="val"
+                      class="btn btn-sm flex-fill fw-semibold py-2"
+                      :class="form.rating === Number(val)
+                        ? (Number(val) <= 2 ? 'btn-danger shadow-sm' : (Number(val) === 3 ? 'btn-warning text-dark shadow-sm' : 'btn-success shadow-sm'))
+                        : 'btn-outline-secondary'"
+                      @click="selectTanaman(Number(val))"
+                    >
+                      <div class="fw-bold fs-6">{{ val }}</div>
+                      <div class="small">{{ label }} (+{{ val }}p)</div>
+                    </button>
                   </div>
-                  <div class="form-check custom-radio">
-                    <input class="form-check-input" type="radio" name="status" id="tidak_disiram" value="tidak_disiram" v-model="form.status" required>
-                    <label class="form-check-label badge-danger-glow" for="tidak_disiram">
-                      <i class="bi bi-x-circle-fill"></i> Tidak Disiram
-                    </label>
+                  <div class="small text-muted">
+                    Perawatan tanaman: +1 s/d +5 Poin Lingkungan.
                   </div>
                 </div>
               </div>
@@ -201,7 +230,7 @@
                 <tr v-for="(s, i) in filteredSurvey" :key="s.id" class="table-row-animate">
                   <td class="text-center fw-medium text-secondary">{{ i + 1 }}</td>
                   <td class="text-center">
-                    <img :src="`/storage/${s.foto}`" alt="Foto" class="survey-thumbnail" @error="imageError" />
+                    <img :src="fotoUrl(s.foto)" alt="Foto" class="survey-thumbnail" @error="imageError" />
                   </td>
                   <td class="fw-bold text-dark">{{ s.nasabah?.nama || '-' }}</td>
                   <td>
@@ -210,6 +239,11 @@
                       <i :class="isStatusPositive(s.status) ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill'"></i>
                       {{ formatStatus(s.status) }}
                     </span>
+                    <div v-if="s.poin" class="mt-1">
+                      <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small fw-bold">
+                        <i class="bi bi-tree me-1"></i>+{{ s.poin }} Poin
+                      </span>
+                    </div>
                   </td>
                   <td class="text-secondary small">{{ s.keterangan || '-' }}</td>
                   <td class="text-secondary small">{{ formatDate(s.tanggal) }}</td>
@@ -254,11 +288,45 @@ let stream = null
 // Form State
 const form = ref({
   nasabah_id: '',
+  rating: null,
   status: '',
   keterangan: '',
   fotoFile: null
 })
 const imagePreview = ref(null)
+
+const pemilahanLabels = {
+  1: 'Sangat Buruk',
+  2: 'Buruk',
+  3: 'Cukup',
+  4: 'Baik',
+  5: 'Sangat Baik'
+}
+
+const tanamanLabels = {
+  1: 'Sangat Layu',
+  2: 'Kurang',
+  3: 'Cukup',
+  4: 'Segar',
+  5: 'Sangat Subur'
+}
+
+const selectKebersihan = (val) => {
+  form.value.rating = val
+  if (val <= 3) form.value.status = 'Sangat Kotor'
+  else if (val <= 6) form.value.status = 'Cukup'
+  else form.value.status = 'Sangat Bersih'
+}
+
+const selectPemilahan = (val) => {
+  form.value.rating = val
+  form.value.status = pemilahanLabels[val]
+}
+
+const selectTanaman = (val) => {
+  form.value.rating = val
+  form.value.status = tanamanLabels[val]
+}
 
 // Load Data
 const loadNasabah = async () => {
@@ -301,7 +369,10 @@ const getActiveTabName = () => {
 }
 
 const isStatusPositive = (status) => {
-  return ['sesuai', 'bersih', 'disiram'].includes(status)
+  if (!status) return false
+  const s = String(status).toLowerCase()
+  if (s.includes('kotor') || s.includes('buruk') || s.includes('layu') || s.includes('tidak')) return false
+  return true
 }
 
 const formatStatus = (status) => {
@@ -318,6 +389,7 @@ const formatDate = (dateStr) => {
 
 // Watch tab change to reset form status
 watch(currentTab, () => {
+  form.value.rating = null
   form.value.status = ''
 })
 
@@ -399,18 +471,30 @@ const removeImage = () => {
   if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
+const fotoUrl = (foto) => {
+  if (!foto) return ''
+  if (foto.startsWith('http://') || foto.startsWith('https://')) return foto
+  if (foto.startsWith('/storage/')) return foto
+  if (foto.startsWith('storage/')) return `/${foto}`
+  return `/storage/${foto}`
+}
+
 const imageError = (e) => {
-  e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect width="80" height="80" fill="%23e0e0e0"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-size="10" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E'
+  e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect width="80" height="80" fill="%23f1f5f9"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-family="sans-serif" font-size="11" fill="%2394a3b8"%3ENo Image%3C/text%3E%3C/svg%3E'
 }
 
 // Submit Form
 const submitSurvey = async () => {
-  if (!form.value.fotoFile) {
-    Swal.fire('Peringatan', 'Silakan upload foto bukti terlebih dahulu!', 'warning')
+  if (!form.value.nasabah_id) {
+    Swal.fire('Peringatan', 'Pilih kelas / nasabah terlebih dahulu!', 'warning')
     return
   }
-  if (!form.value.status) {
-    Swal.fire('Peringatan', 'Pilih status penilaian!', 'warning')
+  if (!form.value.rating) {
+    Swal.fire('Peringatan', 'Silakan pilih rating skala penilaian terlebih dahulu!', 'warning')
+    return
+  }
+  if (!form.value.fotoFile) {
+    Swal.fire('Peringatan', 'Silakan upload foto bukti terlebih dahulu!', 'warning')
     return
   }
 
@@ -419,13 +503,14 @@ const submitSurvey = async () => {
     const formData = new FormData()
     formData.append('nasabah_id', form.value.nasabah_id)
     formData.append('kategori', currentTab.value)
+    formData.append('rating', form.value.rating)
     formData.append('status', form.value.status)
     formData.append('foto', form.value.fotoFile)
     if (form.value.keterangan) {
       formData.append('keterangan', form.value.keterangan)
     }
 
-    await axios.post('/api/survey-lingkungan', formData, {
+    const res = await axios.post('/api/survey-lingkungan', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${auth.token}`
@@ -434,16 +519,17 @@ const submitSurvey = async () => {
 
     Swal.fire({
       title: 'Berhasil!',
-      text: 'Data survey telah disimpan.',
+      text: res.data?.message || 'Data survey dan poin lingkungan berhasil disimpan.',
       icon: 'success',
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      timer: 2000
+      timer: 2500
     })
 
     // Reset Form
     form.value.nasabah_id = ''
+    form.value.rating = null
     form.value.status = ''
     form.value.keterangan = ''
     removeImage()

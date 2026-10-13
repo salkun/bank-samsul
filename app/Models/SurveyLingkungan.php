@@ -12,7 +12,7 @@ class SurveyLingkungan extends Model
     protected $table = 'survey_lingkungan';
 
     protected $fillable = [
-        'user_id', 'nasabah_id', 'kategori', 'foto', 'status', 'keterangan', 'tanggal'
+        'user_id', 'nasabah_id', 'kategori', 'foto', 'status', 'rating', 'poin', 'keterangan', 'tanggal'
     ];
 
     // === RELASI ===

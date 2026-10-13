@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Laporan Bank Sampah</title>
+    <title>Laporan Bank Sampah & Poin</title>
     <style>
         body { font-family: sans-serif; font-size: 12px; color: #333; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -23,20 +23,20 @@
         <p>{{ $periode }}</p>
     </div>
 
-    <!-- 1. Ringkasan Saldo -->
-    <div class="section-title">1. Ringkasan Keuangan</div>
+    <!-- 1. Ringkasan Poin -->
+    <div class="section-title">1. Ringkasan Akumulasi Poin</div>
     <table>
         <tr>
-            <th width="50%">Total Saldo Masuk (Setoran)</th>
-            <td class="text-right">Rp {{ number_format($saldo_masuk, 0, ',', '.') }}</td>
+            <th width="50%">Total Poin Sampah Masuk (Setoran)</th>
+            <td class="text-right"><strong>{{ number_format($poin_sampah_masuk, 0, ',', '.') }} Poin</strong></td>
         </tr>
         <tr>
-            <th>Total Saldo Keluar (Penarikan)</th>
-            <td class="text-right">Rp {{ number_format($saldo_keluar, 0, ',', '.') }}</td>
+            <th>Total Poin Dipakai (Penukaran Barang)</th>
+            <td class="text-right"><strong>{{ number_format($poin_dipakai, 0, ',', '.') }} Poin</strong></td>
         </tr>
         <tr>
-            <th>Netto</th>
-            <td class="text-right"><strong>Rp {{ number_format($saldo_masuk - $saldo_keluar, 0, ',', '.') }}</strong></td>
+            <th>Selisih Poin (Netto)</th>
+            <td class="text-right"><strong>{{ number_format($poin_sampah_masuk - $poin_dipakai, 0, ',', '.') }} Poin</strong></td>
         </tr>
     </table>
 
@@ -47,7 +47,7 @@
             <tr>
                 <th>Kategori Utama</th>
                 <th class="text-center">Total Berat (Kg)</th>
-                <th class="text-right">Total Nilai (Rp)</th>
+                <th class="text-right">Total Poin Sampah</th>
             </tr>
         </thead>
         <tbody>
@@ -55,7 +55,7 @@
             <tr>
                 <td>{{ $item->kategori }}</td>
                 <td class="text-center">{{ number_format($item->total_kg, 2, ',', '.') }} Kg</td>
-                <td class="text-right">Rp {{ number_format($item->total_rp, 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($item->total_poin, 0, ',', '.') }} Poin</td>
             </tr>
             @endforeach
         </tbody>
@@ -68,7 +68,7 @@
             <tr>
                 <th>Jenis Sampah</th>
                 <th class="text-center">Total Berat (Kg)</th>
-                <th class="text-right">Total Nilai (Rp)</th>
+                <th class="text-right">Total Poin Sampah</th>
             </tr>
         </thead>
         <tbody>
@@ -76,21 +76,21 @@
             <tr>
                 <td>{{ $item->jenis }}</td>
                 <td class="text-center">{{ number_format($item->total_kg, 2, ',', '.') }} Kg</td>
-                <td class="text-right">Rp {{ number_format($item->total_rp, 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($item->total_poin, 0, ',', '.') }} Poin</td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
     <!-- 4. Transaksi Nasabah Tertinggi -->
-    <div class="section-title">4. Aktivitas Nasabah (Tertinggi)</div>
+    <div class="section-title">4. Aktivitas Setoran Nasabah</div>
     <table>
         <thead>
             <tr>
                 <th>Nama Nasabah</th>
                 <th class="text-center">Total Transaksi</th>
-                <th class="text-right">Total Setoran (Rp)</th>
-                <th class="text-right">Total Penarikan (Rp)</th>
+                <th class="text-center">Total Berat (Kg)</th>
+                <th class="text-right">Total Poin Sampah</th>
             </tr>
         </thead>
         <tbody>
@@ -98,15 +98,42 @@
             <tr>
                 <td>{{ $item->nasabah }}</td>
                 <td class="text-center">{{ $item->total_transaksi }}</td>
-                <td class="text-right">Rp {{ number_format($item->total_masuk, 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($item->total_keluar, 0, ',', '.') }}</td>
+                <td class="text-center">{{ number_format($item->total_berat, 2, ',', '.') }} Kg</td>
+                <td class="text-right">{{ number_format($item->total_poin, 0, ',', '.') }} Poin</td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
-    <!-- 5. Survey Lingkungan -->
-    <div class="section-title">5. Rekapitulasi Survey Lingkungan</div>
+    <!-- 5. Rekapitulasi Penukaran Barang -->
+    <div class="section-title">5. Rekapitulasi Penukaran Barang (Redeem)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Status Penukaran</th>
+                <th class="text-center">Jumlah Pengajuan</th>
+                <th class="text-right">Total Poin Dipakai</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if(count($rekap_penukaran) > 0)
+                @foreach($rekap_penukaran as $item)
+                <tr>
+                    <td>{{ ucfirst($item->status) }}</td>
+                    <td class="text-center">{{ $item->total }}</td>
+                    <td class="text-right">{{ number_format($item->total_poin, 0, ',', '.') }} Poin</td>
+                </tr>
+                @endforeach
+            @else
+                <tr>
+                    <td colspan="3" class="text-center">Belum ada aktivitas penukaran barang pada periode ini.</td>
+                </tr>
+            @endif
+        </tbody>
+    </table>
+
+    <!-- 6. Survey Lingkungan -->
+    <div class="section-title">6. Rekapitulasi Survey Lingkungan</div>
     <table>
         <thead>
             <tr>

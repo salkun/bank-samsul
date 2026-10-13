@@ -47,33 +47,43 @@
             <th>No</th>
             <th>Nama</th>
             <th>Username</th>
-            <th>Saldo</th>
-            <th>Poin</th>
+            <th>Poin Sampah</th>
+            <th>Poin Lingkungan</th>
+            <th>Total Poin</th>
             <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="filteredNasabah.length === 0">
-            <td colspan="6" class="text-muted py-3">Tidak ada data ditemukan</td>
+            <td colspan="7" class="text-muted py-3">Tidak ada data ditemukan</td>
           </tr>
             <tr v-for="(n, i) in paginatedNasabah" :key="n.id">
               <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-              <td class="text-start">{{ n.nama }}</td>
+              <td class="text-start fw-semibold">{{ n.nama }}</td>
               <td>{{ n.username }}</td>
-              <td>Rp {{ Number(n.saldo).toLocaleString() }}</td>
               <td>
-                <span class="badge rounded-pill" style="background: linear-gradient(135deg,#f59e0b,#d97706); font-size:0.85rem; padding: 0.4em 0.8em;">
-                  <i class="bi bi-star-fill me-1"></i>{{ n.poin }} Poin
+                <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-semibold">
+                  <i class="bi bi-recycle me-1"></i>{{ Number(n.poin_sampah ?? 0).toLocaleString() }}
+                </span>
+              </td>
+              <td>
+                <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 fw-semibold">
+                  <i class="bi bi-tree me-1"></i>{{ Number(n.poin_lingkungan ?? 0).toLocaleString() }}
+                </span>
+              </td>
+              <td>
+                <span class="badge rounded-pill" style="background: linear-gradient(135deg,#059669,#10b981); color:white; font-size:0.85rem; padding: 0.45em 0.8em;">
+                  <i class="bi bi-star-fill me-1"></i>{{ Number((n.poin_sampah ?? 0) + (n.poin_lingkungan ?? 0)).toLocaleString() }}
                 </span>
               </td>
               <td>
                 <button class="btn btn-warning btn-sm me-1" @click="openEditModal(n)" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-sm me-1" style="background:#f59e0b;color:white;" @click="openPoinModal(n)" title="Kelola Poin">
+                <button class="btn btn-sm me-1" style="background:#f59e0b;color:white;" @click="openPoinModal(n)" title="Nilai Poin Lingkungan">
                   <i class="bi bi-star"></i>
                 </button>
-                <button class="btn btn-danger btn-sm" @click="hapusNasabah(n.id)" title="Hapus">
+                <button v-if="auth.user?.role === 'admin'" class="btn btn-danger btn-sm" @click="hapusNasabah(n.id)" title="Hapus">
                   <i class="bi bi-trash"></i>
                 </button>
               </td>

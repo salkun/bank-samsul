@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PenilaianPoin;
 use App\Models\User;
+use App\Models\RiwayatPoin;
 use Illuminate\Support\Facades\DB;
 
 class PenilaianPoinController extends Controller
 {
-    // === DAFTAR SEMUA PENILAIAN (Admin) ===
+    // === DAFTAR SEMUA PENILAIAN (Admin/Petugas) ===
     public function index(Request $request)
     {
         $query = PenilaianPoin::with([
@@ -47,8 +48,10 @@ class PenilaianPoinController extends Controller
             'catatan' => 'nullable|string|max:500',
         ]);
 
-        DB::transaction(function () use ($request) {
-            PenilaianPoin::create([
+        $penilaian = null;
+
+        DB::transaction(function () use ($request, &$penilaian) {
+            $penilaian = PenilaianPoin::create([
                 'nasabah_id' => $request->nasabah_id,
                 'penilai_id' => $request->user()->id,
                 'kategori'   => $request->kategori,
@@ -57,16 +60,28 @@ class PenilaianPoinController extends Controller
                 'tanggal'    => now(),
             ]);
 
-            // Tambah poin nasabah sebesar nilai rating
-            $nasabah = User::findOrFail($request->nasabah_id);
-            $nasabah->poin += $request->rating;
+            // Tambah poin_lingkungan nasabah sebesar nilai rating
+            $nasabah = User::where('id', $request->nasabah_id)->lockForUpdate()->firstOrFail();
+            $nasabah->poin_lingkungan += $request->rating;
             $nasabah->save();
+
+            // Catat riwayat perubahan poin ke riwayat_poin
+            $labelKategori = $request->kategori === 'kebersihan_kelas' ? 'Kebersihan Kelas' : 'Pengelolaan Sampah';
+            RiwayatPoin::create([
+                'user_id'      => $nasabah->id,
+                'jenis_poin'   => 'lingkungan',
+                'jumlah'       => $request->rating,
+                'sumber'       => 'penilaian',
+                'referensi_id' => $penilaian->id,
+                'keterangan'   => "Penilaian {$labelKategori} rating {$request->rating} (+{$request->rating} Poin Lingkungan)",
+            ]);
         });
 
         return response()->json([
             'status'  => 'success',
-            'message' => "Penilaian berhasil disimpan. +{$request->rating} poin diberikan.",
-        ]);
+            'message' => "Penilaian berhasil disimpan. +{$request->rating} poin lingkungan diberikan.",
+            'data'    => $penilaian,
+        ], 201);
     }
 
     // === RIWAYAT PENILAIAN MILIK NASABAH SENDIRI ===

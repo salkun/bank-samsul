@@ -10,7 +10,11 @@ class KategoriSampah extends Model
     use HasFactory;
 
     protected $table = 'kategori_sampah';
-    protected $fillable = ['nama', 'kategori', 'satuan', 'harga_per_kg'];
+    protected $fillable = ['nama', 'kategori', 'satuan', 'poin_per_kg'];
+
+    protected $casts = [
+        'poin_per_kg' => 'integer',
+    ];
 
     public function setorans()
     {

@@ -13,17 +13,16 @@ class NasabahTemplateExport implements FromArray, WithHeadings, WithStyles, Shou
 {
     public function array(): array
     {
-        // Contoh data migrasi dari sistem sebelumnya
         return [
-            ['Kelas 7A', 'kelas7a', 'password123', 150000, 0],
-            ['Kelas 7B', 'kelas7b', 'password123', 75000,  0],
-            ['Kelas 8A', 'kelas8a', 'password123', 200000, 0],
+            ['Kelas 7A', 'kelas7a', 'password123', 0, 0],
+            ['Kelas 7B', 'kelas7b', 'password123', 0, 0],
+            ['Kelas 8A', 'kelas8a', 'password123', 0, 0],
         ];
     }
 
     public function headings(): array
     {
-        return ['nama', 'username', 'password', 'saldo', 'poin'];
+        return ['nama', 'username', 'password', 'poin_sampah', 'poin_lingkungan'];
     }
 
     public function styles(Worksheet $sheet)

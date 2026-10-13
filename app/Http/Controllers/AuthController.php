@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -30,10 +31,14 @@ class AuthController extends Controller
             'status' => 'success',
             'token' => $token,
             'user' => [
-                'id' => $user->id,
-                'username' => $user->username,
-                'nama' => $user->nama,
-                'role' => $user->role,
+                'id'              => $user->id,
+                'username'        => $user->username,
+                'nama'            => $user->nama,
+                'role'            => $user->role,
+                'saldo'           => $user->saldo,
+                'poin_sampah'     => $user->poin_sampah,
+                'poin_lingkungan' => $user->poin_lingkungan,
+                'total_poin'      => $user->total_poin,
             ]
         ]);
     }
@@ -48,8 +53,18 @@ class AuthController extends Controller
     // === INFO USER LOGIN ===
     public function me(Request $request)
     {
+        $user = $request->user();
         return response()->json([
-            'user' => $request->user()
+            'user' => [
+                'id'              => $user->id,
+                'username'        => $user->username,
+                'nama'            => $user->nama,
+                'role'            => $user->role,
+                'saldo'           => $user->saldo,
+                'poin_sampah'     => $user->poin_sampah,
+                'poin_lingkungan' => $user->poin_lingkungan,
+                'total_poin'      => $user->total_poin,
+            ]
         ]);
     }
 }
