@@ -63,6 +63,10 @@ Route::middleware(['auth:sanctum', 'role:admin,petugas'])->group(function () {
 
     // === TRANSAKSI SETORAN SAMPAH ===
     Route::post('/transaksi/setoran', [TransaksiController::class, 'setoran']);
+    Route::put('/transaksi/setoran/{id}', [TransaksiController::class, 'update']);
+    Route::delete('/transaksi/setoran/{id}', [TransaksiController::class, 'destroy']);
+    Route::put('/transaksi/{id}', [TransaksiController::class, 'update']);
+    Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy']);
     // Riwayat transaksi nasabah (hanya admin/petugas, tutup IDOR)
     Route::get('/transaksi/{user_id}', [TransaksiController::class, 'riwayat']);
 

@@ -40,9 +40,9 @@
               v-model.number="form.berat"
               type="number"
               class="form-control"
-              min="0.1"
-              step="0.1"
-              placeholder="0.0"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
             />
           </div>
 
@@ -117,11 +117,12 @@
                   <th class="text-start">Jenis Sampah</th>
                   <th>Berat</th>
                   <th>Poin Didapat</th>
+                  <th style="width: 100px;">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="!riwayatSetoran.length">
-                  <td colspan="5" class="text-muted py-4">Belum ada catatan setoran untuk nasabah ini.</td>
+                  <td colspan="6" class="text-muted py-4">Belum ada catatan setoran untuk nasabah ini.</td>
                 </tr>
                 <tr v-for="(s, i) in riwayatSetoran" :key="s.id">
                   <td>{{ i + 1 }}</td>
@@ -133,6 +134,28 @@
                       +{{ Number(s.poin).toLocaleString('id-ID') }} Poin
                     </span>
                   </td>
+                  <td>
+                    <div class="d-flex justify-content-center gap-1">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-warning d-inline-flex align-items-center justify-content-center"
+                        style="width: 32px; height: 32px; padding: 0;"
+                        @click="openEditModal(s)"
+                        title="Edit Setoran"
+                      >
+                        <i class="bi bi-pencil-square"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger d-inline-flex align-items-center justify-content-center"
+                        style="width: 32px; height: 32px; padding: 0;"
+                        @click="deleteSetoran(s)"
+                        title="Hapus Setoran"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -142,6 +165,83 @@
       <div v-else class="text-center py-5 text-muted border rounded-3 bg-white">
         <i class="bi bi-person-check fs-1 text-secondary mb-2 d-block"></i>
         Pilih salah satu nasabah pada formulir di atas untuk melihat riwayat setoran & saldo poin mereka.
+      </div>
+
+      <!-- MODAL EDIT SETORAN -->
+      <div v-if="showEditModal" class="modal fade show d-block bg-dark bg-opacity-50" tabindex="-1" style="z-index: 1055;">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white border-0 py-3 px-4">
+              <h5 class="modal-title fw-bold mb-0">
+                <i class="bi bi-pencil-square me-2"></i> Edit Setoran Sampah
+              </h5>
+              <button type="button" class="btn-close btn-close-white" @click="closeEditModal" :disabled="editSubmitting"></button>
+            </div>
+
+            <div class="modal-body p-4">
+              <!-- Info Nasabah -->
+              <div class="alert alert-light border d-flex align-items-center gap-2 mb-3 py-2 px-3 rounded-3">
+                <i class="bi bi-person-fill text-success fs-5"></i>
+                <div>
+                  <small class="text-muted d-block" style="font-size: 0.75rem;">Nasabah</small>
+                  <span class="fw-bold text-dark">{{ selectedNasabahData?.nama }}</span>
+                  <span class="text-muted small"> (@{{ selectedNasabahData?.username }})</span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Jenis Sampah <span class="text-danger">*</span></label>
+                <select v-model="editForm.kategori_id" class="form-select">
+                  <option value="">-- Pilih Jenis --</option>
+                  <option v-for="k in kategori" :key="k.id" :value="k.id">
+                    {{ k.nama }} ({{ Number(k.poin_per_kg).toLocaleString() }} poin/{{ k.satuan }})
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Berat (kg) <span class="text-danger">*</span></label>
+                <input
+                  v-model.number="editForm.berat"
+                  type="number"
+                  class="form-control"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tanggal Setor</label>
+                <input v-model="editForm.tanggal" type="date" class="form-control" />
+              </div>
+
+              <!-- Estimasi Poin Baru & Perbandingan -->
+              <div v-if="editSelectedKategori && editForm.berat > 0" class="alert alert-success border-0 py-2 px-3 rounded-3 mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small"><i class="bi bi-calculator me-1"></i> Perhitungan Baru:</span>
+                  <span class="fw-bold text-success">+{{ editEstimasiPoin.toLocaleString('id-ID') }} Poin</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center small text-muted pt-1 border-top">
+                  <span>Poin Sebelumnya: {{ editPoinLama.toLocaleString('id-ID') }} Poin</span>
+                  <span :class="editSelisihPoin >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'">
+                    Selisih: {{ editSelisihPoin >= 0 ? '+' : '' }}{{ editSelisihPoin.toLocaleString('id-ID') }} Poin
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer bg-light border-0 py-3 px-4">
+              <button type="button" class="btn btn-secondary px-3" @click="closeEditModal" :disabled="editSubmitting">
+                Batal
+              </button>
+              <button type="button" class="btn btn-success px-4" @click="saveEditSetoran" :disabled="editSubmitting">
+                <span v-if="editSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                <i v-else class="bi bi-check-circle me-1"></i> Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </MainLayout>
@@ -261,6 +361,129 @@ const setor = async () => {
     })
   } finally {
     submitting.value = false
+  }
+}
+
+// === EDIT & DELETE SETORAN ===
+const showEditModal = ref(false)
+const editSubmitting = ref(false)
+const editForm = ref({
+  id: null,
+  kategori_id: '',
+  berat: '',
+  tanggal: ''
+})
+const editPoinLama = ref(0)
+
+const editSelectedKategori = computed(() => {
+  return kategori.value.find(k => k.id === editForm.value.kategori_id) || null
+})
+
+const editEstimasiPoin = computed(() => {
+  if (!editSelectedKategori.value || !editForm.value.berat) return 0
+  return Math.floor(editForm.value.berat * editSelectedKategori.value.poin_per_kg)
+})
+
+const editSelisihPoin = computed(() => {
+  return editEstimasiPoin.value - (editPoinLama.value || 0)
+})
+
+const openEditModal = (item) => {
+  editForm.value = {
+    id: item.id,
+    kategori_id: item.kategori_id,
+    berat: item.berat,
+    tanggal: item.tanggal ? String(item.tanggal).substring(0, 10) : ''
+  }
+  editPoinLama.value = item.poin || 0
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  if (editSubmitting.value) return
+  showEditModal.value = false
+}
+
+const saveEditSetoran = async () => {
+  if (!editForm.value.kategori_id || !editForm.value.berat || editForm.value.berat <= 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Lengkapi Formulir!',
+      text: 'Pilih jenis sampah dan masukkan berat yang valid (minimal 0.01 kg).',
+      confirmButtonColor: '#16a34a'
+    })
+    return
+  }
+
+  editSubmitting.value = true
+  try {
+    const res = await axios.put(`/api/transaksi/setoran/${editForm.value.id}`, editForm.value, {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    })
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Setoran Diperbarui!',
+      text: res.data.message || 'Setoran sampah berhasil diperbarui.',
+      timer: 2000,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
+    })
+
+    closeEditModal()
+    await loadData()
+    await onNasabahChange()
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal Memperbarui!',
+      text: err.response?.data?.message || 'Terjadi kesalahan saat memperbarui setoran.',
+      confirmButtonColor: '#dc2626'
+    })
+  } finally {
+    editSubmitting.value = false
+  }
+}
+
+const deleteSetoran = async (item) => {
+  const result = await Swal.fire({
+    title: 'Hapus Setoran Ini?',
+    html: `Apakah Anda yakin ingin menghapus setoran <b>${item.kategori?.nama || 'sampah'} (${item.berat} kg)</b>?<br><br><span class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>Poin nasabah sebanyak <b>${item.poin} Poin</b> akan dikurangkan secara otomatis.</span>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: '<i class="bi bi-trash me-1"></i> Ya, Hapus',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
+
+  try {
+    const res = await axios.delete(`/api/transaksi/setoran/${item.id}`, {
+      headers: { Authorization: `Bearer ${auth.token}` }
+    })
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Setoran Dihapus!',
+      text: res.data.message || 'Setoran sampah berhasil dihapus.',
+      timer: 2000,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
+    })
+
+    await loadData()
+    await onNasabahChange()
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal Menghapus!',
+      text: err.response?.data?.message || 'Terjadi kesalahan saat menghapus setoran.',
+      confirmButtonColor: '#dc2626'
+    })
   }
 }
 

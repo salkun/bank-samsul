@@ -306,7 +306,7 @@
                 </span>
                 <div>
                   <small>WhatsApp / Telepon</small>
-                  <a href="https://wa.me/6285722975551" target="_blank" rel="noopener">+62 857-2297-5551</a>
+                  <a href="https://wa.me/62881027655734" target="_blank" rel="noopener">+62 881-0276-55734</a>
                 </div>
               </li>
               <li>
@@ -315,7 +315,7 @@
                 </span>
                 <div>
                   <small>Email Resmi</small>
-                  <a href="mailto:banksamsul@smps2almuhajirin.sch.id">banksamsul@smps2almuhajirin.sch.id</a>
+                  <a href="mailto:Banksamsul32@gmail.com">Banksamsul32@gmail.com</a>
                 </div>
               </li>
               <li>
@@ -324,7 +324,7 @@
                 </span>
                 <div>
                   <small>Jam Operasional</small>
-                  <span>Senin – Jumat, 07:00 – 15:00 WIB</span>
+                  <span>Senin & Rabu, 12:30 – 13:10 WIB</span>
                 </div>
               </li>
             </ul>
@@ -351,7 +351,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
-const SEKOLAH = 'SMP 2 Al-Muhajirin Purwakarta'
+const SEKOLAH = 'SMPS 2 Al-Muhajirin Purwakarta'
 const ART_BG = ['#e9eee3', '#f1e6d7', '#f4e7df', '#e6e9dc']
 
 // === Konten statis (mengikuti aturan sistem) ===

@@ -17,7 +17,7 @@ class TransaksiController extends Controller
         $request->validate([
             'user_id'     => 'required|exists:users,id',
             'kategori_id' => 'required|exists:kategori_sampah,id',
-            'berat'       => 'required|numeric|min:0.1',
+            'berat'       => 'required|numeric|min:0.01',
             'tanggal'     => 'nullable|date',
         ]);
 
@@ -67,6 +67,118 @@ class TransaksiController extends Controller
             'poin_dapat' => $poinDapat,
             'data'       => $setoran
         ], 201);
+    }
+
+    // === EDIT / UPDATE SETORAN SAMPAH ===
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'kategori_id' => 'required|exists:kategori_sampah,id',
+            'berat'       => 'required|numeric|min:0.01',
+            'tanggal'     => 'nullable|date',
+            'user_id'     => 'nullable|exists:users,id',
+        ]);
+
+        $setoran = SetoranSampah::findOrFail($id);
+        $kategori = KategoriSampah::findOrFail($request->kategori_id);
+        $newPoin = (int) floor($request->berat * $kategori->poin_per_kg);
+
+        DB::transaction(function () use ($request, $setoran, $kategori, $newPoin) {
+            $currentNasabah = User::where('id', $setoran->user_id)->lockForUpdate()->firstOrFail();
+            $targetUserId = $request->user_id ?? $setoran->user_id;
+
+            // Jika nasabah dipindahkan ke user lain
+            if ($targetUserId != $setoran->user_id) {
+                $targetNasabah = User::where('id', $targetUserId)->lockForUpdate()->firstOrFail();
+                if ($targetNasabah->role !== 'nasabah') {
+                    abort(422, 'Target pengguna harus memiliki role nasabah.');
+                }
+
+                // Tarik poin dari nasabah lama
+                $currentNasabah->poin_sampah = max(0, $currentNasabah->poin_sampah - $setoran->poin);
+                $currentNasabah->save();
+
+                // Berikan poin ke nasabah baru
+                $targetNasabah->poin_sampah += $newPoin;
+                $targetNasabah->save();
+
+                $setoran->user_id = $targetNasabah->id;
+                $finalUserId = $targetNasabah->id;
+            } else {
+                // Nasabah tetap sama: hitung selisih poin (baru - lama)
+                $selisihPoin = $newPoin - $setoran->poin;
+                $currentNasabah->poin_sampah = max(0, $currentNasabah->poin_sampah + $selisihPoin);
+                $currentNasabah->save();
+
+                $finalUserId = $currentNasabah->id;
+            }
+
+            // Update data setoran
+            $setoran->kategori_id = $kategori->id;
+            $setoran->berat = $request->berat;
+            $setoran->poin = $newPoin;
+            if ($request->filled('tanggal')) {
+                $setoran->tanggal = $request->tanggal;
+            }
+            $setoran->save();
+
+            // Update riwayat poin terkait
+            $ketBaru = "Setoran {$kategori->nama} {$request->berat} {$kategori->satuan} (+{$newPoin} Poin Sampah)";
+            $riwayat = RiwayatPoin::where('sumber', 'setoran')
+                ->where('referensi_id', $setoran->id)
+                ->first();
+
+            if ($riwayat) {
+                $riwayat->update([
+                    'user_id'    => $finalUserId,
+                    'jumlah'     => $newPoin,
+                    'keterangan' => $ketBaru,
+                ]);
+            } else {
+                RiwayatPoin::create([
+                    'user_id'      => $finalUserId,
+                    'jenis_poin'   => 'sampah',
+                    'jumlah'       => $newPoin,
+                    'sumber'       => 'setoran',
+                    'referensi_id' => $setoran->id,
+                    'keterangan'   => $ketBaru,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'status'     => 'success',
+            'message'    => 'Setoran sampah berhasil diperbarui.',
+            'poin_dapat' => $newPoin,
+            'data'       => $setoran->fresh(['kategori']),
+        ]);
+    }
+
+    // === HAPUS SETORAN SAMPAH ===
+    public function destroy($id)
+    {
+        $setoran = SetoranSampah::findOrFail($id);
+
+        DB::transaction(function () use ($setoran) {
+            $nasabah = User::where('id', $setoran->user_id)->lockForUpdate()->firstOrFail();
+
+            // Kembalikan/kurangi poin sampah nasabah
+            $nasabah->poin_sampah = max(0, $nasabah->poin_sampah - $setoran->poin);
+            $nasabah->save();
+
+            // Hapus riwayat poin terkait
+            RiwayatPoin::where('sumber', 'setoran')
+                ->where('referensi_id', $setoran->id)
+                ->delete();
+
+            // Hapus record setoran
+            $setoran->delete();
+        });
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Setoran sampah berhasil dihapus dan poin nasabah telah disesuaikan.',
+        ]);
     }
 
     // === RIWAYAT TRANSAKSI / SETORAN NASABAH (KHUSUS ADMIN/PETUGAS) ===

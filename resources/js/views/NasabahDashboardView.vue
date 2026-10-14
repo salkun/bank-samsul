@@ -1180,7 +1180,7 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 import { useAuthStore } from '../stores/useAuthStore'
 
-const SEKOLAH = 'SMP 2 Al-Muhajirin'
+const SEKOLAH = 'SMPS 2 Al-Muhajirin'
 
 const router = useRouter()
 const auth = useAuthStore()

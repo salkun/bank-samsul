@@ -36,13 +36,13 @@
           <form @submit.prevent="handleLogin" class="sign-form" novalidate>
             <!-- Email / Username -->
             <div class="form-field">
-              <label for="username" class="field-label">Email</label>
+              <label for="username" class="field-label">Username</label>
               <input
                 id="username"
                 v-model.trim="form.username"
                 type="text"
                 class="field-input"
-                placeholder="Enter Email or Username"
+                placeholder="Enter Username"
                 autocomplete="username"
                 required
                 :disabled="loading"
@@ -80,15 +80,6 @@
               </div>
             </div>
 
-            <!-- Remember me checkbox -->
-            <div class="remember-row">
-              <label class="checkbox-container">
-                <input type="checkbox" v-model="rememberMe" />
-                <span class="custom-checkmark"></span>
-                <span class="checkbox-label">Remember me</span>
-              </label>
-            </div>
-
             <!-- Submit Button -->
             <button type="submit" class="btn-signin" :disabled="loading">
               <span v-if="loading" class="btn-spinner" aria-hidden="true"></span>
@@ -98,10 +89,6 @@
 
           <!-- Footer Prompt & Home Link -->
           <div class="form-footer">
-            <p class="register-prompt">
-              Not registered yet?
-              <a href="#register" class="register-link" @click.prevent="handleContactAdmin">Create an account</a>
-            </p>
             <router-link to="/" class="back-home-link">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
               <span>Kembali ke Beranda</span>
@@ -202,7 +189,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/useAuthStore'
 import { swal } from '../plugins/swal'
 
-const SEKOLAH = 'SMP 2 Al-Muhajirin'
+const SEKOLAH = 'SMPS 2 Al-Muhajirin'
 
 const router = useRouter()
 const auth = useAuthStore()
