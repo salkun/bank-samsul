@@ -28,7 +28,7 @@
               <p>Di Bank Samsul, barang yang sudah tak terpakai bisa jadi sesuatu yang berarti. Pilah, setor, kumpulkan poin, lalu tukarkan dengan hadiah pilihanmu.</p>
               <div class="hero-actions">
                 <router-link class="lp-btn" to="/login">Mulai dari sini <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg></router-link>
-                <a class="lp-btn secondary" href="#cara">Kenali caranya</a>
+                <a class="lp-btn secondary" href="#panduan">Lihat Panduan</a>
               </div>
               <div class="tiny-note"><span></span> Program bank sampah {{ SEKOLAH }}</div>
             </div>
@@ -87,20 +87,70 @@
         </div>
       </section>
 
-      <!-- CARA KERJA -->
-      <section id="cara" class="section how">
-        <div class="wrap how-layout">
-          <div v-reveal class="how-intro reveal">
-            <span class="eyebrow">Gampang kok</span>
-            <h2>Empat langkah, satu kebiasaan baik.</h2>
-            <p>Mulai dari memilah sampah sampai membawa pulang hadiah. Semua tercatat lewat sistem.</p>
-            <span class="label-pill">♻ Pilah hari ini, berdampak nanti</span>
+      <!-- PANDUAN PENYETORAN SAMPAH BANK SAMSUL -->
+      <section id="panduan" class="section guide">
+        <span id="cara" class="anchor-alias"></span>
+        <div class="wrap">
+          <div class="guide-top">
+            <div v-reveal class="section-head reveal">
+              <span class="eyebrow">Panduan untuk Siswa / Nasabah</span>
+              <h2>Panduan Penyetoran Sampah Bank Samsul</h2>
+              <p>Pelajari panduan lengkap mulai dari pemilahan sampah, penyetoran di loket, perhitungan poin, hingga penukaran barang.</p>
+            </div>
+            <div v-reveal class="guide-action-box reveal delay-1">
+              <a href="/panduan-bank-samsul.pdf" target="_blank" download="Panduan-Bank-Samsul.pdf" class="lp-btn secondary pdf-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                <span>Unduh PDF Panduan</span>
+              </a>
+            </div>
           </div>
-          <div class="steps">
-            <article v-for="(s, i) in langkah" :key="s.judul" v-reveal class="step reveal" :class="`delay-${i}`">
-              <span class="step-num">0{{ i + 1 }}</span>
-              <div><h3>{{ s.judul }}</h3><p>{{ s.isi }}</p></div>
+
+          <!-- 6 KARTU LANGKAH PANDUAN -->
+          <div class="guide-grid">
+            <article v-for="(p, i) in panduanLangkah" :key="p.no" v-reveal class="guide-card reveal" :class="`delay-${(i % 3) + 1}`">
+              <div class="guide-card-head">
+                <span class="guide-step-badge">{{ p.no }}</span>
+                <span class="guide-step-tag">Langkah {{ p.no }}</span>
+              </div>
+              <h3 class="guide-card-title">{{ p.judul }}</h3>
+              <p v-if="p.deskripsi" class="guide-card-desc">{{ p.deskripsi }}</p>
+
+              <div v-if="p.linkText" class="guide-link-pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <a :href="p.linkHref" target="_blank" rel="noopener">{{ p.linkText }}</a>
+              </div>
+
+              <p v-if="p.instruksi" class="guide-card-subdesc">{{ p.instruksi }}</p>
+
+              <ul class="guide-checklist">
+                <li v-for="(item, idx) in p.poinList" :key="idx">
+                  <span class="check-bullet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span>{{ item }}</span>
+                </li>
+              </ul>
+
+              <!-- Catatan khusus jika ada -->
+              <div v-if="p.catatan" class="guide-note-box">
+                <div class="note-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="note-text">
+                  <strong>Penting:</strong> {{ p.catatan }}
+                </div>
+              </div>
             </article>
+          </div>
+
+          <!-- BANNER MOTTO PENUTUP -->
+          <div v-reveal class="guide-motto-banner reveal delay-2">
+            <div class="motto-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div class="motto-content">
+              <p>Mari pilah sampah dengan benar, kumpulkan poin, dan berpartisipasi aktif dalam menjaga kebersihan serta kelestarian lingkungan sekolah!</p>
+            </div>
           </div>
         </div>
       </section>
@@ -279,9 +329,9 @@
                 </a>
               </li>
               <li>
-                <a href="#cara">
+                <a href="#panduan">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
-                  Panduan Setoran
+                  Panduan Penyetoran
                 </a>
               </li>
             </ul>
@@ -357,7 +407,7 @@ const ART_BG = ['#e9eee3', '#f1e6d7', '#f4e7df', '#e6e9dc']
 // === Konten statis (mengikuti aturan sistem) ===
 const navLinks = [
   { href: '#tentang', label: 'Tentang' },
-  { href: '#cara', label: 'Cara kerja' },
+  { href: '#panduan', label: 'Panduan' },
   { href: '#poin', label: 'Poin' },
   { href: '#hadiah', label: 'Hadiah' },
   { href: '#faq', label: 'FAQ' },
@@ -369,11 +419,76 @@ const prinsip = [
   { no: '03 / RECYCLE', judul: 'Pilah untuk didaur ulang.', isi: 'Setorkan sampah terpilah kepada petugas agar bisa dikelola dengan lebih tepat.' },
 ]
 
-const langkah = [
-  { judul: 'Setorkan sampahmu', isi: 'Bawa sampah yang sudah dipilah ke petugas. Petugas menimbang dan mencatat setoran.' },
-  { judul: 'Poin masuk ke akun', isi: 'Poin sampah dihitung dari berat × poin per kg sesuai jenis sampah, lalu tercatat di akunmu.' },
-  { judul: 'Pilih hadiah yang kamu suka', isi: 'Lihat katalog, ajukan penukaran poin, dan pilih tanggal pengambilan mulai besok (H+1).' },
-  { judul: 'Ambil hadiahmu', isi: 'Datang sesuai tanggal yang dipilih setelah pengajuan disetujui admin atau petugas.' },
+const panduanLangkah = [
+  {
+    no: '01',
+    judul: 'Persiapan Sampah',
+    deskripsi: 'Pastikan sampah yang akan disetorkan sudah dipilah dan memenuhi kriteria berikut:',
+    poinList: [
+      'Kumpulkan sampah yang dapat ditabung, seperti botol plastik, gelas plastik (cup), tutup botol, wadah katering, dan kardus.',
+      'Pastikan sampah dalam keadaan kosong dan bersih dari air maupun sisa makanan.',
+      'Lepaskan label, stiker, dan selotip yang masih menempel, jika ada.',
+      'Pisahkan tutup botol dari botolnya.'
+    ]
+  },
+  {
+    no: '02',
+    judul: 'Penyetoran Sampah',
+    deskripsi: 'Proses penyerahan sampah terpilah kepada petugas Bank Samsul:',
+    poinList: [
+      'Bawa sampah yang telah dipilah ke petugas Bank Samsul sesuai dengan jadwal penyetoran yang berlaku.',
+      'Petugas akan menimbang sampah serta mencatat jenis dan berat sampah yang disetorkan.',
+      'Pastikan jenis dan berat sampah telah dicatat dengan benar sebelum proses penyetoran selesai.'
+    ]
+  },
+  {
+    no: '03',
+    judul: 'Perolehan Poin Sampah',
+    deskripsi: 'Konversi berat sampah menjadi poin tabungan siswa/nasabah:',
+    poinList: [
+      'Sampah yang disetorkan akan dikonversi menjadi Poin Sampah berdasarkan jenis dan beratnya.',
+      'Poin akan ditambahkan ke akun masing-masing siswa/nasabah setelah setoran selesai diproses.'
+    ],
+    catatan: 'Poin Sampah berbeda dengan Poin Lingkungan. Poin Sampah diperoleh melalui penyetoran sampah, sedangkan Poin Lingkungan diperoleh berdasarkan hasil penilaian kebersihan kelas dan pengelolaan sampah.'
+  },
+  {
+    no: '04',
+    judul: 'Pemantauan Poin',
+    deskripsi: 'Akses portal resmi untuk memeriksa saldo dan riwayat aktivitas:',
+    linkText: 'bank.smp2almuhajirin.sch.id',
+    linkHref: 'https://bank.smp2almuhajirin.sch.id',
+    instruksi: 'Masuk dengan username dan password yang telah diberikan petugas untuk memantau:',
+    poinList: [
+      'Jumlah Poin Sampah.',
+      'Jumlah Poin Lingkungan.',
+      'Riwayat penyetoran sampah beserta poin yang diperoleh.',
+      'Riwayat perubahan poin.'
+    ]
+  },
+  {
+    no: '05',
+    judul: 'Penukaran Poin dengan Barang',
+    deskripsi: 'Manfaatkan poin yang telah terkumpul untuk ditukar dengan barang bermanfaat:',
+    poinList: [
+      'Buka menu Redeem untuk melihat daftar barang yang tersedia.',
+      'Pilih barang yang diinginkan serta jenis poin yang sesuai.',
+      'Tentukan jumlah barang dan tanggal pengambilan. Tanggal pengambilan paling cepat adalah 2 hari setelah permintaan diajukan.',
+      'Kirim permintaan penukaran dan tunggu persetujuan dari admin.',
+      'Apabila permintaan disetujui, ambil barang sesuai dengan tanggal yang telah dipilih.',
+      'Pantau status permintaan penukaran melalui akun Bank Samsul.'
+    ]
+  },
+  {
+    no: '06',
+    judul: 'Menjaga Kebersihan Lingkungan',
+    deskripsi: 'Partisipasi aktif menjaga area sekolah tetap bersih, rapi, dan nyaman:',
+    poinList: [
+      'Sapu sampah yang berserakan dan pastikan lantai bersih dari kotoran.',
+      'Bersihkan noda pada lantai menggunakan alat pel hingga bersih dan kering.',
+      'Buang sampah yang tidak dapat ditabung ke tempat sampah yang sesuai.',
+      'Rapikan kembali area penyetoran dan kembalikan alat kebersihan ke tempatnya.'
+    ]
+  }
 ]
 
 const skalaLingkungan = [
@@ -583,21 +698,166 @@ p { color: var(--muted); }
 .principle h3 { font-size: 20px; margin: 0 0 6px; }
 .principle p { font-size: 13.5px; margin: 0; max-width: 480px; }
 
-/* === Cara kerja === */
-.how { background: #e9eee3; }
-.how-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: 54px; }
-.how-intro { align-self: start; position: sticky; top: 100px; }
-.how-intro h2 { margin-top: 14px; }
-.how-intro p { font-size: 15.5px; }
-.label-pill { display: inline-flex; padding: 7px 12px; background: var(--white); border-radius: 99px; color: var(--green); font-size: 11px; font-weight: 700; margin-top: 10px; }
-.steps { position: relative; }
-.steps::before { content: ""; position: absolute; left: 22px; top: 24px; bottom: 26px; width: 1px; background: #bdcbb9; }
-.step { display: grid; grid-template-columns: 46px 1fr; gap: 18px; position: relative; padding-bottom: 26px; }
-.step:last-child { padding-bottom: 0; }
-.step-num { position: relative; z-index: 1; display: grid; place-items: center; width: 45px; height: 45px; border-radius: 50%; border: 1px solid #b5c5b1; background: #e9eee3; color: var(--forest); font: 800 13px Manrope, sans-serif; transition: background .3s, color .3s, transform .3s; }
-.step.visible .step-num { background: var(--forest); color: var(--lime); transform: scale(1.06); }
-.step h3 { font-size: 19px; margin: 2px 0 6px; }
-.step p { font-size: 13.5px; margin: 0; max-width: 470px; }
+/* === Panduan Penyetoran Sampah === */
+.guide { background: #e9eee3; position: relative; }
+.anchor-alias { position: absolute; top: -90px; }
+.guide-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 30px; flex-wrap: wrap; }
+.guide-top .section-head { margin-bottom: 0; }
+.guide-action-box { display: flex; align-items: center; }
+.pdf-btn { background: var(--white); border-color: var(--line); color: var(--forest) !important; padding: 11px 20px; font-size: 13px; font-weight: 700; gap: 9px; box-shadow: 0 4px 14px rgba(23,63,50,0.05); }
+.pdf-btn:hover { background: var(--forest); color: #fff !important; border-color: var(--forest); box-shadow: 0 8px 22px rgba(23,63,50,0.18); }
+.pdf-btn svg { width: 16px; height: 16px; }
+
+.guide-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.guide-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .3s, box-shadow .3s, border-color .3s;
+}
+.guide-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(23,63,50,0.08);
+  border-color: #b7c7b0;
+}
+.guide-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.guide-step-badge {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--forest);
+  color: var(--lime);
+  font: 800 14px Manrope, sans-serif;
+  letter-spacing: -.02em;
+}
+.guide-step-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--green);
+  background: #eef3e8;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+.guide-card-title {
+  font-size: 18px;
+  margin: 0 0 8px;
+  color: var(--forest);
+}
+.guide-card-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.guide-link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: #f1f6ec;
+  border: 1px solid #d4ded0;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--forest);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.guide-link-pill svg { width: 14px; height: 14px; color: var(--green); flex-shrink: 0; }
+.guide-link-pill a { color: var(--forest); text-decoration: none; word-break: break-all; }
+.guide-link-pill a:hover { text-decoration: underline; color: var(--green); }
+.guide-card-subdesc {
+  font-size: 12.5px;
+  color: var(--ink);
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.guide-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #314238;
+}
+.guide-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.check-bullet {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e1edd8;
+  color: var(--green);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.check-bullet svg { width: 11px; height: 11px; }
+
+.guide-note-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: #fdf6ec;
+  border: 1px solid #f3d7ba;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #7a431d;
+}
+.note-icon {
+  width: 18px;
+  height: 18px;
+  color: #d96924;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.note-icon svg { width: 100%; height: 100%; }
+
+.guide-motto-banner {
+  margin-top: 36px;
+  background: var(--forest);
+  color: #fff;
+  border-radius: 20px;
+  padding: 22px 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 14px 34px rgba(23,63,50,0.14);
+}
+.motto-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--lime);
+  color: var(--forest);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.motto-icon-wrap svg { width: 24px; height: 24px; }
+.motto-content p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #e5ede7;
+  font-weight: 500;
+}
 
 /* === Poin === */
 .points-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 24px; }
@@ -898,7 +1158,9 @@ footer {
   .leaf.two { bottom: 275px; left: calc(50% - 1px); }
   .leaf.three { bottom: 210px; }
   .leaf.four { bottom: 310px; }
-  .about-grid, .how-layout, .roles-layout, .faq-layout { gap: 36px; }
+  .about-grid, .roles-layout, .faq-layout { gap: 36px; }
+  .guide-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .guide-top { align-items: flex-start; flex-direction: column; gap: 16px; }
   .reward-grid { grid-template-columns: repeat(2, 1fr); }
   .section { padding: 52px 0; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
@@ -944,15 +1206,16 @@ footer {
   .stat:first-child { padding-left: 0; }
   .stat strong { font-size: 24px; }
   .stat span { font-size: 10px; line-height: 1.35; display: block; margin-top: 4px; }
-  .about-grid, .how-layout, .roles-layout, .faq-layout { grid-template-columns: 1fr; gap: 24px; }
-  .about-copy, .how-intro { position: static; }
+  .about-grid, .roles-layout, .faq-layout { grid-template-columns: 1fr; gap: 24px; }
+  .about-copy { position: static; }
+  .guide-grid { grid-template-columns: 1fr; gap: 14px; }
+  .guide-card { padding: 18px; border-radius: 16px; }
+  .guide-card-title { font-size: 17px; }
+  .guide-motto-banner { padding: 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
+  .motto-content p { font-size: 13.5px; }
   .principle { grid-template-columns: 36px 1fr; gap: 10px; padding: 14px 0; }
   .principle h3 { font-size: 18px; }
   .principle p { font-size: 13px; }
-  .step { grid-template-columns: 40px 1fr; gap: 14px; padding-bottom: 20px; }
-  .step-num { width: 38px; height: 38px; font-size: 12px; }
-  .step h3 { font-size: 17px; }
-  .step p { font-size: 13px; }
   .points-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
   .point-card { padding: 18px; }
   .point-card h3 { font-size: 20px; }
